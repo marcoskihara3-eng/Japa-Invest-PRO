@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Japa Invest — Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f6fa;color:#1a1a2e;min-height:100vh}
+  .topbar{background:#1a2e52;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo-badge{width:38px;height:38px;border-radius:50%;background:transparent;border:2px solid #c9a84c;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#c9a84c}
+  .logo-text{font-size:17px;font-weight:700;color:#c9a84c;letter-spacing:.3px}
+  .logo-sub{font-size:11px;color:rgba(201,168,76,0.65);margin-top:1px}
+  .topbar-right{font-size:12px;color:rgba(201,168,76,0.6)}
+  .container{max-width:1100px;margin:0 auto;padding:28px 24px}
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+  .metric{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e4e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .metric-label{font-size:12px;color:#7a8499;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .metric-value{font-size:26px;font-weight:700;color:#1a2e52}
+  .metric-sub{font-size:11px;color:#aab0be;margin-top:4px}
+  .metric-gold .metric-value{color:#c9a84c}
+  .section-title{font-size:13px;font-weight:600;color:#7a8499;margin-bottom:12px;display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  @media(max-width:650px){.charts-row{grid-template-columns:1fr}}
+  .chart-card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e4e8f0;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .chart-title{font-size:13px;font-weight:600;color:#1a2e52;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#7a8499}
+  .leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .aporte-banner{background:linear-gradient(135deg,#1a2e52 0%,#233d6e 100%);border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;border:1px solid #2a4070}
+  .aporte-text{color:#c9a84c;font-size:14px;font-weight:700}
+  .aporte-sub{color:rgba(201,168,76,0.6);font-size:11px;margin-top:3px}
+  .aporte-tickers{display:flex;gap:8px;flex-wrap:wrap}
+  .aporte-tick{background:rgba(201,168,76,0.15);color:#c9a84c;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(201,168,76,0.35)}
+  .card{background:#fff;border-radius:12px;border:1px solid #e4e8f0;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .tab-bar{display:flex;gap:6px;padding:14px 16px 0;background:#fff;flex-wrap:wrap}
+  .tab{padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #e4e8f0;background:#f4f6fa;color:#7a8499;font-weight:500;transition:all .15s}
+  .tab:hover{border-color:#c9a84c;color:#c9a84c}
+  .tab.active{background:#1a2e52;color:#c9a84c;border-color:#1a2e52}
+  .table-actions{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 12px}
+  .table-header{display:grid;grid-template-columns:110px 1fr 60px 90px 100px 80px;gap:0;padding:9px 16px;background:#f8f9fc;font-size:11px;font-weight:600;color:#aab0be;text-transform:uppercase;letter-spacing:.4px;border-top:1px solid #f0f2f7}
+  .table-row{display:grid;grid-template-columns:110px 1fr 60px 90px 100px 80px;gap:0;padding:11px 16px;border-top:1px solid #f4f6fa;font-size:13px;color:#1a2e52;align-items:center;transition:background .1s}
+  .table-row:hover{background:#fafbfd}
+  @media(max-width:700px){
+    .table-header,.table-row{grid-template-columns:90px 1fr 50px 80px}
+    .col-pm,.col-total,.col-placar{display:none}
+  }
+  .badge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.3px}
+  .badge-acao{background:#e8f0fb;color:#1a2e52}
+  .badge-fii{background:#fdf3dc;color:#7a5a00}
+  .badge-etf{background:#e6f4ec;color:#1a5c33}
+  .badge-rf{background:#f0eefd;color:#3d2d8e}
+  .nome-cell{font-size:12px;color:#aab0be;padding-right:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .placar-box{display:flex;gap:4px;justify-content:center}
+  .placar-dot{width:9px;height:9px;border-radius:50%;background:#e4e8f0}
+  .placar-dot.on{background:#c9a84c}
+  .btn-add{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;background:#1a2e52;color:#c9a84c;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s}
+  .btn-add:hover{opacity:.85}
+  .prov-header{display:grid;grid-template-columns:110px 1fr 80px 90px 90px;gap:0;padding:9px 16px;background:#f8f9fc;font-size:11px;font-weight:600;color:#aab0be;text-transform:uppercase;letter-spacing:.4px;border-top:1px solid #f0f2f7}
+  .prov-row{display:grid;grid-template-columns:110px 1fr 80px 90px 90px;gap:0;padding:11px 16px;border-top:1px solid #f4f6fa;font-size:13px;color:#1a2e52;align-items:center}
+  .prov-row:hover{background:#fafbfd}
+  .dy-val{color:#1a7a4a;font-weight:700}
+  .text-right{text-align:right}
+  .text-center{text-align:center}
+  .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,20,50,0.55);z-index:200;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:28px;width:360px;max-width:95vw;box-shadow:0 12px 40px rgba(0,0,0,0.18)}
+  .modal h3{font-size:16px;font-weight:700;margin-bottom:18px;color:#1a2e52;display:flex;align-items:center;gap:8px}
+  .form-row{margin-bottom:12px}
+  .form-row label{font-size:12px;color:#7a8499;display:block;margin-bottom:5px;font-weight:500}
+  .form-row input,.form-row select{width:100%;padding:9px 12px;border:1.5px solid #e4e8f0;border-radius:8px;background:#fff;color:#1a2e52;font-size:13px;outline:none;transition:border .15s}
+  .form-row input:focus,.form-row select:focus{border-color:#1a2e52}
+  .modal-btns{display:flex;gap:10px;margin-top:18px}
+  .btn-cancel{flex:1;padding:10px;border-radius:8px;border:1.5px solid #e4e8f0;background:transparent;color:#7a8499;cursor:pointer;font-size:13px;font-weight:500}
+  .btn-save{flex:1;padding:10px;border-radius:8px;border:none;background:#1a2e52;color:#c9a84c;cursor:pointer;font-size:13px;font-weight:700}
+  .btn-save:hover{background:#233d6e}
+  .progress-bar{height:6px;background:#e4e8f0;border-radius:3px;margin-top:8px;overflow:hidden}
+  .progress-fill{height:6px;background:linear-gradient(90deg,#c9a84c,#f0d080);border-radius:3px;transition:width .5s}
+  .section-gap{margin-bottom:24px}
+  footer{text-align:center;padding:24px;font-size:11px;color:#bbc0cc}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-badge">JI</div>
+    <div>
+      <div class="logo-text">Japa Invest</div>
+      <div class="logo-sub">Do Japão pro Brasil — investindo depois dos 40, do zero, ao vivo</div>
+    </div>
+  </div>
+  <div class="topbar-right"><i class="ti ti-refresh"></i> Atualizado: <span id="dataAtual"></span></div>
+</div>
+
+<div class="container">
+
+  <div class="metric-grid" id="metrics"></div>
+
+  <div class="aporte-banner">
+    <div>
+      <div class="aporte-text"><i class="ti ti-target"></i> Próximo aporte — R$ 1.000,00</div>
+      <div class="aporte-sub">R$ 250 em cada ativo selecionado</div>
+    </div>
+    <div class="aporte-tickers">
+      <span class="aporte-tick">BBAS3</span>
+      <span class="aporte-tick">SAPR4</span>
+      <span class="aporte-tick">CMIG4</span>
+      <span class="aporte-tick">KLBN11</span>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title"><i class="ti ti-chart-pie-2" style="color:#c9a84c"></i> Alocação por classe</div>
+      <div style="position:relative;height:190px"><canvas id="pieChart" role="img" aria-label="Alocação da carteira por classe de ativo"></canvas></div>
+      <div class="legend" id="pieLegend"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><i class="ti ti-trending-up" style="color:#c9a84c"></i> Evolução patrimonial (2026)</div>
+      <div style="position:relative;height:190px"><canvas id="lineChart" role="img" aria-label="Evolução do patrimônio ao longo dos meses de 2026"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card section-gap">
+    <div class="tab-bar" id="tabBar">
+      <div class="tab active" onclick="setTab('todos',this)">Todos</div>
+      <div class="tab" onclick="setTab('acao',this)">Ações</div>
+      <div class="tab" onclick="setTab('fii',this)">FIIs</div>
+      <div class="tab" onclick="setTab('etf',this)">ETFs</div>
+      <div class="tab" onclick="setTab('rf',this)">Renda Fixa</div>
+    </div>
+    <div class="table-actions">
+      <span class="section-title" style="margin:0"><i class="ti ti-briefcase"></i> Carteira</span>
+      <button class="btn-add" onclick="openModal()"><i class="ti ti-plus"></i> Adicionar ativo</button>
+    </div>
+    <div class="table-header">
+      <span>Ticker</span>
+      <span>Nome</span>
+      <span class="text-center">Qtd</span>
+      <span class="text-right col-pm">Preço médio</span>
+      <span class="text-right col-total">Total est.</span>
+      <span class="text-center col-placar">Placar</span>
+    </div>
+    <div id="tableBody"></div>
+  </div>
+
+  <div class="card section-gap">
+    <div style="padding:14px 16px 0">
+      <span class="section-title"><i class="ti ti-coin" style="color:#c9a84c"></i> Proventos estimados</span>
+    </div>
+    <div class="prov-header">
+      <span>Ticker</span>
+      <span>Nome</span>
+      <span class="text-right">DY est.</span>
+      <span class="text-right">Mensal est.</span>
+      <span class="text-right">Anual est.</span>
+    </div>
+    <div id="proventosBody"></div>
+  </div>
+
+</div>
+
+<footer>Japa Invest Dashboard &mdash; gerado por Claude &bull; Valores estimados, não constituem recomendação de investimento</footer>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3><i class="ti ti-plus" style="color:#c9a84c"></i> Adicionar ativo</h3>
+    <div class="form-row"><label>Ticker</label><input id="mTicker" placeholder="ex: BBAS3" /></div>
+    <div class="form-row"><label>Nome</label><input id="mNome" placeholder="ex: Banco do Brasil" /></div>
+    <div class="form-row"><label>Classe</label>
+      <select id="mClasse">
+        <option value="acao">Ação</option>
+        <option value="fii">FII</option>
+        <option value="etf">ETF</option>
+        <option value="rf">Renda Fixa</option>
+      </select>
+    </div>
+    <div class="form-row"><label>Quantidade</label><input id="mQtd" type="number" min="0" placeholder="0" /></div>
+    <div class="form-row"><label>Preço médio (R$)</label><input id="mPM" type="number" min="0" step="0.01" placeholder="0,00" /></div>
+    <div class="form-row"><label>DY estimado (%)</label><input id="mDY" type="number" min="0" step="0.1" placeholder="0.0" /></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveAtivo()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('dataAtual').textContent = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+
+const ATIVOS_BASE = [
+  {ticker:'TAEE11',nome:'Taesa',classe:'fii',qtd:11,pm:38.20,dy:11.2,placar:4},
+  {ticker:'ITUB4',nome:'Itaú Unibanco',classe:'acao',qtd:7,pm:34.50,dy:5.8,placar:3},
+  {ticker:'WEGE3',nome:'WEG',classe:'acao',qtd:6,pm:52.00,dy:2.1,placar:2},
+  {ticker:'ITSA4',nome:'Itaúsa',classe:'acao',qtd:7,pm:10.80,dy:7.2,placar:4},
+  {ticker:'MXRF11',nome:'Maxi Renda FII',classe:'fii',qtd:22,pm:10.20,dy:12.5,placar:3},
+  {ticker:'HGLG11',nome:'CSHG Logística',classe:'fii',qtd:1,pm:158.00,dy:8.4,placar:4},
+  {ticker:'XPML11',nome:'XP Malls',classe:'fii',qtd:1,pm:96.00,dy:9.1,placar:3},
+  {ticker:'GARE11',nome:'Guardian Real Estate',classe:'fii',qtd:12,pm:9.80,dy:11.8,placar:4},
+  {ticker:'BTCI11',nome:'BTG Pactual Cripto',classe:'fii',qtd:10,pm:9.50,dy:0.0,placar:1},
+  {ticker:'MCRE11',nome:'Mogno Recebíveis',classe:'fii',qtd:6,pm:9.70,dy:13.2,placar:3},
+  {ticker:'IVVB11',nome:'iShares S&P500',classe:'etf',qtd:2,pm:310.00,dy:0.5,placar:2},
+  {ticker:'NASD11',nome:'Nasdaq 100',classe:'etf',qtd:10,pm:58.00,dy:0.3,placar:2},
+  {ticker:'RDB Nubank',nome:'100%/115% CDI',classe:'rf',qtd:1,pm:14494,dy:12.8,placar:4},
+];
+
+const CHAVE = 'japaInvestAtivos';
+let ativos = JSON.parse(localStorage.getItem(CHAVE)) || [...ATIVOS_BASE];
+let activeTab = 'todos';
+
+function salvar(){localStorage.setItem(CHAVE,JSON.stringify(ativos))}
+function calcTotal(a){return a.qtd*a.pm}
+function calcDivAnual(a){return calcTotal(a)*(a.dy/100)}
+function calcDivMensal(a){return calcDivAnual(a)/12}
+function fmt(v,d=0){return v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+
+function renderMetrics(){
+  const total=ativos.reduce((s,a)=>s+calcTotal(a),0);
+  const divAnual=ativos.reduce((s,a)=>s+calcDivAnual(a),0);
+  const meta=1000000;
+  const pct=(total/meta*100);
+  const cards=[
+    {icon:'ti-wallet',label:'Patrimônio estimado',value:'R$ '+fmt(total),sub:'pelo preço médio',gold:false},
+    {icon:'ti-coin',label:'Dividendos / mês',value:'R$ '+fmt(divAnual/12,2),sub:'anual est.: R$ '+fmt(divAnual,2),gold:false},
+    {icon:'ti-chart-bar',label:'Ativos na carteira',value:ativos.length,sub:[...new Set(ativos.map(a=>a.classe))].length+' classes diferentes',gold:false},
+    {icon:'ti-trophy',label:'Meta R$ 1.000.000',value:pct.toFixed(1)+'%',sub:'faltam R$ '+fmt(meta-total),gold:true},
+  ];
+  document.getElementById('metrics').innerHTML=cards.map(c=>`
+    <div class="metric${c.gold?' metric-gold':''}">
+      <div class="metric-label"><i class="ti ${c.icon}"></i>${c.label}</div>
+      <div class="metric-value">${c.value}</div>
+      ${c.gold?`<div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100).toFixed(1)}%"></div></div>`:''}
+      <div class="metric-sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+function renderTable(){
+  const f=activeTab==='todos'?ativos:ativos.filter(a=>a.classe===activeTab);
+  const CLASSES={acao:'badge-acao',fii:'badge-fii',etf:'badge-etf',rf:'badge-rf'};
+  document.getElementById('tableBody').innerHTML=f.map(a=>{
+    const dots=[1,2,3,4].map(i=>`<span class="placar-dot${i<=a.placar?' on':''}"></span>`).join('');
+    return`<div class="table-row">
+      <span><span class="badge ${CLASSES[a.classe]}">${a.ticker}</span></span>
+      <span class="nome-cell">${a.nome}</span>
+      <span class="text-center">${a.qtd}</span>
+      <span class="text-right col-pm">R$ ${fmt(a.pm,2)}</span>
+      <span class="text-right col-total">R$ ${fmt(calcTotal(a))}</span>
+      <span class="text-center col-placar"><div class="placar-box">${dots}</div></span>
+    </div>`;
+  }).join('')||'<div style="padding:20px 16px;color:#aab0be;font-size:13px">Nenhum ativo nessa classe ainda.</div>';
+}
+
+function renderProventos(){
+  const p=ativos.filter(a=>a.dy>0).sort((a,b)=>b.dy-a.dy);
+  const CLASSES={acao:'badge-acao',fii:'badge-fii',etf:'badge-etf',rf:'badge-rf'};
+  document.getElementById('proventosBody').innerHTML=p.map(a=>`
+    <div class="prov-row">
+      <span><span class="badge ${CLASSES[a.classe]}">${a.ticker}</span></span>
+      <span class="nome-cell">${a.nome}</span>
+      <span class="text-right dy-val">${a.dy.toFixed(1)}%</span>
+      <span class="text-right">R$ ${fmt(calcDivMensal(a),2)}</span>
+      <span class="text-right">R$ ${fmt(calcDivAnual(a),2)}</span>
+    </div>`).join('');
+}
+
+function setTab(t,el){
+  activeTab=t;
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+let pieInst,lineInst;
+function renderCharts(){
+  const classes=['acao','fii','etf','rf'];
+  const labels=['Ações','FIIs','ETFs','Renda Fixa'];
+  const colors=['#1a2e52','#c9a84c','#2d7d46','#6c5ce7'];
+  const totals=classes.map(c=>ativos.filter(a=>a.classe===c).reduce((s,a)=>s+calcTotal(a),0));
+  const totalG=totals.reduce((s,v)=>s+v,0);
+  const pcts=totals.map(v=>parseFloat((v/totalG*100).toFixed(1)));
+  document.getElementById('pieLegend').innerHTML=labels.map((l,i)=>`<span class="leg-item"><span class="leg-dot" style="background:${colors[i]}"></span>${l} ${pcts[i]}%</span>`).join('');
+  if(pieInst)pieInst.destroy();
+  pieInst=new Chart(document.getElementById('pieChart'),{
+    type:'doughnut',data:{labels,datasets:[{data:pcts,backgroundColor:colors,borderWidth:3,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+'%'}}},cutout:'62%'}
+  });
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const base=ativos.reduce((s,a)=>s+calcTotal(a),0);
+  const growth=meses.map((_,i)=>parseFloat((base*(1+i*0.018)).toFixed(0)));
+  if(lineInst)lineInst.destroy();
+  lineInst=new Chart(document.getElementById('lineChart'),{
+    type:'line',data:{labels:meses,datasets:[{label:'Patrimônio',data:growth,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.35,pointRadius:4,pointBackgroundColor:'#c9a84c',pointBorderColor:'#fff',pointBorderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'R$'+Math.round(v/1000)+'k',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+function openModal(){document.getElementById('modalOverlay').classList.add('open')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function saveAtivo(){
+  const t=document.getElementById('mTicker').value.trim().toUpperCase();
+  const n=document.getElementById('mNome').value.trim();
+  const c=document.getElementById('mClasse').value;
+  const q=parseFloat(document.getElementById('mQtd').value)||0;
+  const p=parseFloat(document.getElementById('mPM').value)||0;
+  const d=parseFloat(document.getElementById('mDY').value)||0;
+  if(!t||!n||q<=0||p<=0)return alert('Preencha todos os campos obrigatórios.');
+  ativos.push({ticker:t,nome:n,classe:c,qtd:q,pm:p,dy:d,placar:0});
+  salvar();closeModal();renderAll();
+}
+
+function renderAll(){renderMetrics();renderTable();renderProventos();renderCharts();}
+renderAll();
+</script>
+</body>
+</html>

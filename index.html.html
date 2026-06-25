@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Japa Invest Pro — Ferramenta de Valuation B3</title>
+<meta name="description" content="Dashboard completo para investidores da B3. Valuation automático com Bazin, Graham, DDM e P/L. Tema escuro, funciona offline.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{
+  --gold:#c9a84c;--gold2:#f0d080;--gold-dim:rgba(201,168,76,0.15);--gold-border:rgba(201,168,76,0.3);
+  --bg0:#0d1117;--bg1:#161b22;--bg2:#1c2330;--bg3:#21293a;
+  --text1:#e6edf3;--text2:#8b949e;--border:#30363d;
+  --green:#3fb950;--red:#f85149;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--text1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+a{color:inherit;text-decoration:none}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 5%;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-badge{width:32px;height:32px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
+.nav-name{font-size:14px;font-weight:700;color:var(--gold)}
+.nav-cta{background:var(--gold);color:#0d1117;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.nav-cta:hover{opacity:.88}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:100px 5% 60px;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(26,46,82,0.5) 0%,transparent 70%)}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gold);font-weight:600;margin-bottom:28px}
+.hero h1{font-size:clamp(32px,5vw,58px);font-weight:800;line-height:1.15;margin-bottom:20px;max-width:800px}
+.hero h1 span{color:var(--gold)}
+.hero-sub{font-size:clamp(15px,2vw,18px);color:var(--text2);max-width:560px;margin:0 auto 40px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px}
+.btn-primary{background:var(--gold);color:#0d1117;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--text1);padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+.hero-proof{display:flex;align-items:center;gap:20px;justify-content:center;flex-wrap:wrap}
+.proof-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+.proof-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+
+/* MOCK PREVIEW */
+.mock-wrap{max-width:900px;margin:0 auto;position:relative}
+.mock-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse,rgba(201,168,76,0.12) 0%,transparent 70%);pointer-events:none}
+.mock{background:var(--bg1);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.6)}
+.mock-topbar{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
+.mock-dot{width:10px;height:10px;border-radius:50%}
+.mock-tabs{display:flex;gap:2px;margin-left:12px}
+.mock-tab{padding:4px 12px;border-radius:4px;font-size:10px;color:var(--text2)}
+.mock-tab.active{background:rgba(201,168,76,0.15);color:var(--gold)}
+.mock-body{padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mock-card{background:var(--bg2);border-radius:8px;padding:12px;border:1px solid var(--border)}
+.mock-label{font-size:9px;color:var(--text2);margin-bottom:6px}
+.mock-val{font-size:16px;font-weight:700;color:var(--text1)}
+.mock-val.gold{color:var(--gold)}
+.mock-chart-row{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mock-chart{background:var(--bg2);border-radius:8px;padding:12px;border:1px solid var(--border);height:100px;display:flex;flex-direction:column}
+.mock-bar-row{display:flex;align-items:flex-end;gap:4px;flex:1;padding-top:8px}
+.mock-bar{background:var(--gold);border-radius:3px 3px 0 0;flex:1;opacity:.8}
+.mock-line-svg{flex:1}
+
+/* SECTION */
+section{padding:80px 5%}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-tag{display:inline-block;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--gold);font-weight:600;margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px}
+.section-title{font-size:clamp(24px,3.5vw,38px);font-weight:800;margin-bottom:14px;line-height:1.2}
+.section-sub{font-size:16px;color:var(--text2);max-width:540px}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:48px}
+.feat-card{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:24px;transition:border-color .2s}
+.feat-card:hover{border-color:var(--gold-border)}
+.feat-icon{width:44px;height:44px;border-radius:10px;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:20px;color:var(--gold)}
+.feat-card h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.feat-card p{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* ABA PREVIEW */
+.abas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px}
+@media(max-width:700px){.abas-grid{grid-template-columns:1fr 1fr}}
+.aba-card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.aba-header{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.aba-header i{color:var(--gold);font-size:18px}
+.aba-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.aba-list li{font-size:12px;color:var(--text2);display:flex;align-items:flex-start;gap:6px}
+.aba-list li::before{content:"›";color:var(--gold);font-weight:700;flex-shrink:0}
+
+/* PARA QUEM */
+.for-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:40px}
+.for-card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:18px;display:flex;gap:12px;align-items:flex-start}
+.for-check{width:28px;height:28px;border-radius:50%;background:rgba(63,185,80,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);font-size:14px}
+.for-text h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.for-text p{font-size:12px;color:var(--text2)}
+
+/* PRICING */
+.pricing-wrap{max-width:460px;margin:48px auto 0}
+.price-card{background:var(--bg1);border:2px solid var(--gold-border);border-radius:16px;padding:36px;text-align:center;position:relative;overflow:hidden}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.price-badge{display:inline-block;background:var(--gold);color:#0d1117;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:20px}
+.price-from{font-size:13px;color:var(--text2);text-decoration:line-through;margin-bottom:4px}
+.price-val{font-size:52px;font-weight:800;color:var(--gold);line-height:1}
+.price-per{font-size:13px;color:var(--text2);margin-top:4px;margin-bottom:28px}
+.price-list{list-style:none;text-align:left;display:flex;flex-direction:column;gap:11px;margin-bottom:32px}
+.price-list li{display:flex;align-items:center;gap:10px;font-size:13px}
+.price-list li i{color:var(--green);font-size:16px;flex-shrink:0}
+.price-cta{display:block;background:var(--gold);color:#0d1117;padding:15px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;margin-bottom:14px}
+.price-cta:hover{background:var(--gold2)}
+.price-guarantee{font-size:11px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px}
+
+/* FAQ */
+.faq-list{max-width:700px;margin:40px auto 0;display:flex;flex-direction:column;gap:4px}
+.faq-item{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.faq-q{padding:16px 20px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.faq-q:hover{color:var(--gold)}
+.faq-q i{font-size:16px;color:var(--text2);flex-shrink:0;transition:transform .2s}
+.faq-a{display:none;padding:0 20px 16px;font-size:13px;color:var(--text2);line-height:1.7}
+.faq-item.open .faq-q i{transform:rotate(180deg)}
+.faq-item.open .faq-a{display:block}
+
+/* AUTHOR */
+.author-card{max-width:580px;margin:40px auto 0;background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;align-items:center;gap:20px}
+@media(max-width:500px){.author-card{flex-direction:column;text-align:center}}
+.author-avatar{width:72px;height:72px;border-radius:50%;background:var(--bg3);border:3px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--gold);flex-shrink:0}
+.author-name{font-size:16px;font-weight:700;margin-bottom:4px}
+.author-role{font-size:12px;color:var(--gold);margin-bottom:8px}
+.author-bio{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* FINAL CTA */
+.final-cta{text-align:center;padding:80px 5%;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(26,46,82,0.6) 0%,transparent 70%)}
+.final-cta h2{font-size:clamp(24px,4vw,42px);font-weight:800;margin-bottom:16px}
+.final-cta p{font-size:16px;color:var(--text2);margin-bottom:36px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:28px 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-size:13px;font-weight:700;color:var(--gold)}
+.footer-text{font-size:11px;color:var(--text2)}
+.footer-disc{font-size:10px;color:var(--text2);max-width:500px;line-height:1.5}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border)}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .mock-body{grid-template-columns:1fr 1fr}
+  .mock-chart-row{grid-template-columns:1fr}
+  .abas-grid{grid-template-columns:1fr}
+  nav .btn-secondary{display:none}
+}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .5s,transform .5s}
+.reveal.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="nav-badge">JI</div>
+    <div>
+      <div class="nav-name">Japa Invest Pro</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a href="#funcionalidades" class="btn-secondary" style="padding:7px 16px;font-size:13px">Ver funcionalidades</a>
+    <a href="#preco" class="nav-cta">Quero a ferramenta</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-eyebrow"><i class="ti ti-chart-bar"></i> Para investidores da B3</div>
+    <h1>Valuation automático.<br>Carteira organizada.<br><span>Decisões mais inteligentes.</span></h1>
+    <p class="hero-sub">Dashboard completo com Bazin, Graham, DDM e P/L calculados automaticamente. Tema escuro, funciona offline, seus dados salvos no seu computador.</p>
+    <div class="hero-btns">
+      <a href="#preco" class="btn-primary"><i class="ti ti-download"></i> Quero o Japa Invest Pro</a>
+      <a href="#funcionalidades" class="btn-secondary"><i class="ti ti-eye"></i> Ver funcionalidades</a>
+    </div>
+    <div class="hero-proof">
+      <div class="proof-item"><span class="proof-dot"></span> Arquivo HTML único</div>
+      <div class="proof-item"><span class="proof-dot"></span> 100% offline</div>
+      <div class="proof-item"><span class="proof-dot"></span> Sem mensalidade</div>
+      <div class="proof-item"><span class="proof-dot"></span> Seus dados ficam com você</div>
+    </div>
+  </div>
+</section>
+
+<!-- MOCK PREVIEW -->
+<section style="padding:0 5% 80px">
+  <div class="mock-wrap reveal">
+    <div class="mock-glow"></div>
+    <div class="mock">
+      <div class="mock-topbar">
+        <span class="mock-dot" style="background:#f85149"></span>
+        <span class="mock-dot" style="background:#d29922"></span>
+        <span class="mock-dot" style="background:#3fb950"></span>
+        <div class="mock-tabs">
+          <span class="mock-tab active">Dashboard</span>
+          <span class="mock-tab">Carteira</span>
+          <span class="mock-tab">Valuation</span>
+          <span class="mock-tab">Status</span>
+          <span class="mock-tab">Proventos</span>
+        </div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-card"><div class="mock-label">Patrimônio estimado</div><div class="mock-val">R$ 43.290</div></div>
+        <div class="mock-card"><div class="mock-label">Dividendos / mês</div><div class="mock-val" style="color:var(--green)">R$ 287</div></div>
+        <div class="mock-card"><div class="mock-label">Ativos na carteira</div><div class="mock-val">13</div></div>
+        <div class="mock-card"><div class="mock-label">Meta R$ 1.000.000</div><div class="mock-val gold">4,3%</div></div>
+        <div class="mock-chart-row">
+          <div class="mock-chart">
+            <div class="mock-label">Alocação por classe</div>
+            <div class="mock-bar-row">
+              <div class="mock-bar" style="height:55%;background:#58a6ff"></div>
+              <div class="mock-bar" style="height:80%;background:var(--gold)"></div>
+              <div class="mock-bar" style="height:30%;background:var(--green)"></div>
+              <div class="mock-bar" style="height:35%;background:#bc8cff"></div>
+            </div>
+          </div>
+          <div class="mock-chart">
+            <div class="mock-label">Evolução 2026</div>
+            <svg class="mock-line-svg" viewBox="0 0 200 60" preserveAspectRatio="none">
+              <polyline points="0,50 30,44 60,38 90,32 120,26 150,18 180,10 200,6" fill="none" stroke="var(--gold)" stroke-width="2"/>
+              <polygon points="0,50 30,44 60,38 90,32 120,26 150,18 180,10 200,6 200,60 0,60" fill="rgba(201,168,76,0.08)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FUNCIONALIDADES -->
+<section id="funcionalidades">
+  <div class="section-inner">
+    <div style="text-align:center">
+      <div class="section-tag">Funcionalidades</div>
+      <h2 class="section-title">Tudo que você precisa<br>em um único arquivo</h2>
+      <p class="section-sub" style="margin:0 auto">Sem planilha travando, sem app com mensalidade, sem seus dados na nuvem de outra pessoa.</p>
+    </div>
+    <div class="features-grid reveal">
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-layout-dashboard"></i></div><h3>Dashboard completo</h3><p>Visão geral do patrimônio, evolução mensal estimada, dividendos mensais e progresso até o primeiro milhão.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-calculator"></i></div><h3>Valuation automático</h3><p>Bazin (preço teto), Graham, DDM e P/L calculados automaticamente. Placar de 0 a 4 pontos para cada ativo.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-activity"></i></div><h3>Status por ativo</h3><p>P/VP, DY, Dívida/PL e tendência. Nota de qualidade automática: Bom, Atenção ou Ruim para facilitar decisão.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-coin"></i></div><h3>Controle de proventos</h3><p>Dividendos mensais e anuais estimados por ativo. Ranking dos melhores pagadores com score visual.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-arrows-right-left"></i></div><h3>Histórico de aportes</h3><p>Registre todas as suas compras e vendas com data. Total aportado, número de operações e ativos únicos.</p></div>
+      <div class="feat-card"><div class="feat-icon"><i class="ti ti-moon"></i></div><h3>Tema escuro profissional</h3><p>Interface navy blue e dourado. Funciona 100% offline no seu navegador. Dados salvos automaticamente no seu computador.</p></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ABAS -->
+<section style="background:var(--bg1)">
+  <div class="section-inner">
+    <div style="text-align:center">
+      <div class="section-tag">6 abas completas</div>
+      <h2 class="section-title">Uma ferramenta,<br>zero mensalidade</h2>
+    </div>
+    <div class="abas-grid reveal">
+      <div class="aba-card"><div class="aba-header"><i class="ti ti-layout-dashboard"></i>Dashboard</div><ul class="aba-list"><li>Patrimônio total estimado</li><li>Dividendos mensais e anuais</li><li>Gráfico de alocação por classe</li><li>Evolução patrimonial 2026</li><li>Top pagadores de DY</li><li>Barra de progresso da meta</li></ul></div>
+      <div class="aba-card"><div class="aba-header"><i class="ti ti-briefcase"></i>Carteira</div><ul class="aba-list"><li>Filtro por classe de ativo</li><li>Preço médio e total investido</li><li>% de alocação por ativo</li><li>Placar de valuation (0-4)</li><li>Editar e remover ativos</li><li>Adicionar novos ativos</li></ul></div>
+      <div class="aba-card"><div class="aba-header"><i class="ti ti-calculator"></i>Valuation</div><ul class="aba-list"><li>Preço teto pelo método Bazin</li><li>Valor intrínseco de Graham</li><li>Valor justo pelo DDM</li><li>Análise P/L (≤15 = aprovado)</li><li>Check ✓ ou reprovado ✗ automático</li><li>Placar consolidado por ativo</li></ul></div>
+      <div class="aba-card"><div class="aba-header"><i class="ti ti-activity"></i>Status</div><ul class="aba-list"><li>Cotação atual editável</li><li>P/VP, P/L, DY% por ativo</li><li>Dívida/PL</li><li>Tendência (alta, lateral, baixa)</li><li>Nota geral: Bom / Atenção / Ruim</li><li>Atualização por clique</li></ul></div>
+      <div class="aba-card"><div class="aba-header"><i class="ti ti-coin"></i>Proventos</div><ul class="aba-list"><li>DY estimado por ativo</li><li>Dividendo mensal estimado</li><li>Dividendo anual estimado</li><li>Ranking por DY</li><li>Score visual (pontos dourados)</li><li>Total de proventos da carteira</li></ul></div>
+      <div class="aba-card"><div class="aba-header"><i class="ti ti-arrows-right-left"></i>Aportes</div><ul class="aba-list"><li>Registro de compras e vendas</li><li>Data, ticker, quantidade, preço</li><li>Total aportado acumulado</li><li>Número de operações</li><li>Ativos únicos operados</li><li>Ordenação por data</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PARA QUEM É -->
+<section>
+  <div class="section-inner">
+    <div style="text-align:center">
+      <div class="section-tag">Para quem é</div>
+      <h2 class="section-title">Feito para o investidor<br>que está construindo patrimônio</h2>
+    </div>
+    <div class="for-grid reveal">
+      <div class="for-card"><div class="for-check"><i class="ti ti-check"></i></div><div class="for-text"><h4>Investidor iniciante</h4><p>Que quer organizar a carteira sem depender de planilha complicada.</p></div></div>
+      <div class="for-card"><div class="for-check"><i class="ti ti-check"></i></div><div class="for-text"><h4>Foco em dividendos</h4><p>Que investe em FIIs e ações com foco em renda passiva mensal.</p></div></div>
+      <div class="for-card"><div class="for-check"><i class="ti ti-check"></i></div><div class="for-text"><h4>Método fundamentalista</h4><p>Que usa Bazin, Graham ou DDM e quer ver o cálculo pronto.</p></div></div>
+      <div class="for-card"><div class="for-check"><i class="ti ti-check"></i></div><div class="for-text"><h4>Privacidade total</h4><p>Que não quer colocar os dados da carteira em nenhum app ou site.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- AUTOR -->
+<section style="background:var(--bg1)">
+  <div class="section-inner" style="text-align:center">
+    <div class="section-tag">Quem criou</div>
+    <h2 class="section-title">Criado por quem investe de verdade</h2>
+    <div class="author-card reveal">
+      <div class="author-avatar">M</div>
+      <div>
+        <div class="author-name">Marcos</div>
+        <div class="author-role">Criador do canal Japa Invest</div>
+        <div class="author-bio">Investidor da B3 com foco em dividendos, morando no Japão. Criou essa ferramenta para uso próprio e decidiu compartilhar com quem está no mesmo caminho: construindo patrimônio do zero, com método e consistência.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PREÇO -->
+<section id="preco">
+  <div class="section-inner" style="text-align:center">
+    <div class="section-tag">Preço</div>
+    <h2 class="section-title">Investimento único,<br>sem mensalidade</h2>
+    <div class="pricing-wrap reveal">
+      <div class="price-card">
+        <div class="price-badge">OFERTA DE LANÇAMENTO</div>
+        <div class="price-from">de R$ 97,00</div>
+        <div class="price-val">R$ 47</div>
+        <div class="price-per">pagamento único — sua para sempre</div>
+        <ul class="price-list">
+          <li><i class="ti ti-check"></i>Dashboard completo (6 abas)</li>
+          <li><i class="ti ti-check"></i>Valuation automático (Bazin, Graham, DDM, P/L)</li>
+          <li><i class="ti ti-check"></i>Aba Status com nota de qualidade</li>
+          <li><i class="ti ti-check"></i>Controle de proventos e aportes</li>
+          <li><i class="ti ti-check"></i>Tema escuro profissional</li>
+          <li><i class="ti ti-check"></i>Funciona offline — sem internet</li>
+          <li><i class="ti ti-check"></i>Seus dados ficam no seu computador</li>
+          <li><i class="ti ti-check"></i>Arquivo HTML, abre em qualquer navegador</li>
+        </ul>
+        <!-- COLOQUE SEU LINK DO CAKTO OU HOTMART AQUI -->
+        <a href="https://pay.kiwify.com.br/ya40x6b" class="price-cta"><i class="ti ti-download"></i> Quero o Japa Invest Pro — R$ 47</a>
+        <div class="price-guarantee"><i class="ti ti-shield-check" style="color:var(--green)"></i> Pagamento seguro via Cakto / Hotmart</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FAQ -->
+<section style="background:var(--bg1)">
+  <div class="section-inner" style="text-align:center">
+    <div class="section-tag">Dúvidas</div>
+    <h2 class="section-title">Perguntas frequentes</h2>
+    <div class="faq-list">
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Precisa instalar algum programa?<i class="ti ti-chevron-down"></i></div><div class="faq-a">Não. É um arquivo HTML único. Você baixa, salva no computador e abre com Chrome, Edge ou Firefox. Sem instalação, sem cadastro.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Meus dados ficam salvos?<i class="ti ti-chevron-down"></i></div><div class="faq-a">Sim. A ferramenta usa o armazenamento local do seu navegador (localStorage). Seus dados ficam no seu próprio computador, não vão para nenhum servidor.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Funciona no Mac e no Linux também?<i class="ti ti-chevron-down"></i></div><div class="faq-a">Sim. Funciona em qualquer sistema operacional que tenha um navegador moderno instalado.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Os preços dos ativos são atualizados automaticamente?<i class="ti ti-chevron-down"></i></div><div class="faq-a">Não. Por funcionar offline, você atualiza as cotações manualmente pela aba Status. Isso garante sua privacidade total.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">É para ações ou FIIs também?<i class="ti ti-chevron-down"></i></div><div class="faq-a">Para ambos. A ferramenta suporta ações, FIIs, ETFs e renda fixa. Cada classe tem seus critérios de valuation ajustados.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Como recebo depois da compra?<i class="ti ti-chevron-down"></i></div><div class="faq-a">Imediatamente após o pagamento confirmado, você recebe o arquivo via link de download na plataforma de pagamento (Cakto ou Hotmart).</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="section-inner">
+    <h2>Comece a investir com<br><span style="color:var(--gold)">mais clareza hoje</span></h2>
+    <p>Uma ferramenta, uma compra, para sempre.</p>
+    <a href="#preco" class="btn-primary" style="margin:0 auto;display:inline-flex"><i class="ti ti-download"></i> Quero o Japa Invest Pro — R$ 47</a>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="footer-logo">Japa Invest Pro</div>
+    <div class="footer-text">Do Japão pro Brasil — investindo depois dos 40</div>
+  </div>
+  <div class="footer-disc">Os valores exibidos na ferramenta são estimativas baseadas nos dados inseridos pelo usuário. Não constituem recomendação de investimento. Invista com responsabilidade.</div>
+</footer>
+
+<script>
+function toggleFaq(el){
+  const item=el.parentElement;
+  item.classList.toggle('open');
+}
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
